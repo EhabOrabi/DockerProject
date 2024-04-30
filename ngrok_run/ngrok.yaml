@@ -1,0 +1,6 @@
+authtoken:
+tunnels:
+  app:
+    proto: http
+    addr: 8443
+    hostname: lucky-fun-marlin.ngrok-free.app

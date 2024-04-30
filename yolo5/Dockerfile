@@ -3,6 +3,7 @@ WORKDIR /usr/src/app
 RUN pip install --upgrade pip
 COPY requirements.txt .
 RUN pip install -r requirements.txt
+RUN pip install boto3
 RUN curl -L https://github.com/ultralytics/yolov5/releases/download/v6.2/yolov5s.pt -o yolov5s.pt
 
 COPY . .

@@ -3,10 +3,11 @@ from loguru import logger
 import os
 import time
 from telebot.types import InputFile
+from img_proc import Img
+import boto3
 
 
 class Bot:
-
     def __init__(self, token, telegram_chat_url):
         # create a new instance of the TeleBot class.
         # all communication with Telegram servers are done using self.telegram_bot_client
@@ -67,11 +68,74 @@ class Bot:
 
 class ObjectDetectionBot(Bot):
     def handle_message(self, msg):
-        logger.info(f'Incoming message: {msg}')
+        """Bot Main message handler"""
+        # logger.info(f'Incoming message: {msg}')
+        if "text" in msg:
+            self.send_text(msg['chat']['id'], f'Your original message: {msg["text"]}')
+        else:
+            # if there is checkbox caption
+            if "caption" in msg:
+                try:
+                    img_path = self.download_user_photo(msg)
+                    if msg["caption"] == "Blur":
+                        # Send message to telegram bot
+                        self.send_text(msg['chat']['id'], "Blur filter in progress")
+                        new_img = Img(img_path)
+                        new_img.blur()
+                        new_path = new_img.save_img()
+                        self.send_photo(msg["chat"]["id"], new_path)
+                        self.send_text(msg['chat']['id'], "Blur filter applied")
+                    elif msg["caption"] == "Contour":
+                        self.send_text(msg['chat']['id'], "Contour filter in progress")
+                        new_img = Img(img_path)
+                        new_img.contour()
+                        new_path = new_img.save_img()
+                        self.send_photo(msg["chat"]["id"], new_path)
+                        self.send_text(msg['chat']['id'], "Contour filter applied")
+                    elif msg["caption"] == "Salt and pepper":  # concat, segment
+                        self.send_text(msg['chat']['id'], "salt_n_pepper filter in progress")
+                        new_img = Img(img_path)
+                        new_img.salt_n_pepper()
+                        new_path = new_img.save_img()
+                        self.send_photo(msg["chat"]["id"], new_path)
+                        self.send_text(msg['chat']['id'], "salt_n_pepper filter applied")
+                    elif msg["caption"] == "mix":
+                        self.send_text(msg['chat']['id'], "mix filter in progress")
+                        new_img = Img(img_path)
+                        new_img.salt_n_pepper()
+                        new_path = new_img.save_img()
 
-        if self.is_current_msg_photo(msg):
-            photo_path = self.download_user_photo(msg)
+                        new_img2 = Img(new_path)
+                        new_img2.blur()
+                        new_path = new_img2.save_img()
 
-            # TODO upload the photo to S3
-            # TODO send an HTTP request to the `yolo5` service for prediction
-            # TODO send the returned results to the Telegram end-user
+                        self.send_photo(msg["chat"]["id"], new_path)
+                        self.send_text(msg['chat']['id'], "mix filter applied")
+                    elif msg["caption"] == "predict":
+                        # TODO upload the photo to S3
+                        # TODO send an HTTP request to the `yolo5` service for prediction
+                        # TODO send the returned results to the Telegram end-user
+                        self.send_text(msg['chat']['id'], "yolo5 activated ! ")
+                        # Get the bucket name from the environment variable
+                        images_bucket = os.environ['BUCKET_NAME']
+                        new_img = Img(img_path)
+                        # self.send_text(msg['chat']['id'], "image bucket " + images_bucket)  # for debug
+                        # self.send_text(msg['chat']['id'], new_img)  # for debug
+                        # Upload the image to S3
+
+                        boto3.client('s3').upload_file(str(new_img), images_bucket, "my_new_image")
+                        s3 = boto3.client('s3')
+                        s3.put_object(Bucket=images_bucket,
+                                      Key='encrypt-key',
+                                      Body=b'foobar',
+                                      ServerSideEncryption='aws:kms')
+                        response = s3.get_object(Bucket=images_bucket, Key='encrypt-key')
+                        self.send_text(msg['chat']['id'], response['Body'].read().decode('utf-8'))
+                    else:
+                        self.send_text(msg['chat']['id'],
+                                       "Error invalid caption\n Avalaibe captions are :\n 1)Blur\n2)mix\n3)Salt and pepper\n 4)predict")
+                except Exception as e:
+                    logger.info(f"Error {e}")
+                    self.send_text(msg['chat']['id'], f'failed - try again later')
+            else:
+                self.send_text(msg['chat']['id'], "please provide caption")
