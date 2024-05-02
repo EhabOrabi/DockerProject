@@ -102,7 +102,7 @@ def predict():
 
             logger.info(prediction_summary)
 
-            client = MongoClient("mongodb://mongo1:27017/")
+            client = MongoClient("mongodb://mongo_primary:27017/")
             db = client['mydatabase']
             collection = db['mycollection']
             collection.insert_one(prediction_summary)
@@ -110,7 +110,7 @@ def predict():
         # TODO store the prediction_summary in MongoDB
         # Connect to MongoDB
         client = pymongo.MongoClient("mongodb://localhost:27017/")
-        db = client["mongo_1"]
+        db = client["mongo_primary"]
         # Select or create a collection for predictions
         collection = db["predictions"]
         # Insert JSON data into MongoDB

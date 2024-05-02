@@ -5,8 +5,7 @@ from bot import Bot, ObjectDetectionBot
 
 app = flask.Flask(__name__)
 
-TELEGRAM_TOKEN = os.environ['SECRET_VALUE_FILE']
-# TELEGRAM_TOKEN = os.getenv("MY_SECRET")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 TELEGRAM_APP_URL = os.environ['TELEGRAM_APP_URL']
 
 

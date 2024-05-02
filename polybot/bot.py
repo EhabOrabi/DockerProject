@@ -129,7 +129,7 @@ class ObjectDetectionBot(Bot):
                         client.upload_file(img_path, images_bucket, photo_s3_name[1])
                         # Upload the image to S3
                         # Send an HTTP request to the YOLO5 service for prediction
-                        yolo5_url = "http://my_yolo5_test:8081/predict"
+                        yolo5_url = "http://yolo5_app:8081/predict"
                         headers = {'Content-Type': 'application/json'}
                         image_filename = img_path
                         json_data = {'imgName': image_filename}
