@@ -1,3 +1,4 @@
+import json
 import time
 from pathlib import Path
 import boto3
@@ -8,6 +9,8 @@ import uuid
 import yaml
 from loguru import logger
 import os
+
+from pymongo import MongoClient
 
 # Get the bucket name from the environment variable
 images_bucket = os.environ['BUCKET_NAME']
@@ -29,29 +32,20 @@ def predict():
     logger.info(f'prediction: {prediction_id}. start processing')
 
     # Receives a URL parameter representing the image to download from S3
-    img_name = request.args.get('imgName')
+    img_name = request.json.get('imgName')
+    logger.info(f'img_name is received is {img_name}')
+    photo_s3_name = img_name.split("/")
+
+    file_path_pic_download = os.getcwd() + "/" + str(photo_s3_name[1])
+    logger.info(file_path_pic_download)
+    client = boto3.client('s3')
+    client.download_file(images_bucket, str(photo_s3_name[1]), file_path_pic_download)
+
 
     # TODO download img_name from S3, store the local image path in the original_img_path variable.
     #  The bucket name is provided as an env var BUCKET_NAME.
-    # Local directory to save the image
-    local_directory = 'local_images'
-    original_img_path = ""
-    # Ensure the local directory exists, if not, create it
-    if not os.path.exists(local_directory):
-        os.makedirs(local_directory)
-    # Local file path where the image will be saved
-    local_image_path = os.path.join(local_directory, img_name)
-    try:
-        # Correct usage of download_file method from boto3
-        boto3.client('s3').download_file(images_bucket, img_name, local_image_path)
-        original_img_path = local_image_path
-        print(f"Image downloaded from S3 and saved locally at: {original_img_path}")
-    except Exception as e:
-        print(f"Error downloading image {img_name} from S3: {e}")
-
-    # Check if original_img_path is not None before logging
-    if original_img_path is not None:
-        logger.info(f'prediction: {prediction_id}/{original_img_path}. Download img completed')
+    original_img_path = file_path_pic_download
+    logger.info(f'prediction: {prediction_id}/{original_img_path}. Download img completed')
 
     # Predicts the objects in the image
     run(
@@ -67,24 +61,25 @@ def predict():
 
     # This is the path for the predicted image with labels
     # The predicted image typically includes bounding boxes drawn around the detected objects, along with class labels and possibly confidence scores.
-    predicted_img_path = Path(f'/static/data/{prediction_id}/{original_img_path}')
+    path = Path(f'static/data/{prediction_id}/{str(photo_s3_name[1])}')
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "a") as f:
+        pass
+    predicted_img_path = Path(f'static/data/{prediction_id}/{str(photo_s3_name[1])}')
+    path_str = str(predicted_img_path)
+    json_str = json.dumps({"path": path_str})
+    json_data = json.loads(json_str)
+    unique_filename = str(uuid.uuid4()) + '.jpeg'
+    client.upload_file(json_data["path"], images_bucket, unique_filename)
 
     # TODO Uploads the predicted image (predicted_img_path) to S3 (be careful not to override the original image).
-    # Checking if the file already exists in the S3 bucket
-    s3_existing_objects = boto3.client('s3').list_objects_v2(Bucket=boto3.client('s3'))
-    s3_existing_keys = [obj['Key'] for obj in s3_existing_objects.get('Contents', [])]
-
-    # Generating a unique key for the S3 object
-    s3_key = os.path.join(prediction_id, predicted_img_path)
-    while s3_key in s3_existing_keys:
-        s3_key = os.path.join(prediction_id, os.path.splitext(predicted_img_path)[0] + '_1' +
-                              os.path.splitext(predicted_img_path)[1])
-
-    # Uploading the predicted image to S3
-    boto3.client('s3').upload_file(str(predicted_img_path), images_bucket, s3_key)
 
     # Parse prediction labels and create a summary
-    pred_summary_path = Path(f'static/data/{prediction_id}/labels/{original_img_path.split(".")[0]}.txt')
+    path = Path(f'static/data/{prediction_id}/labels/{photo_s3_name[1].split(".")[0]}.txt')
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "a") as f:
+        pass
+    pred_summary_path = Path(f'static/data/{prediction_id}/labels/{photo_s3_name[1].split(".")[0]}.txt')
     if pred_summary_path.exists():
         with open(pred_summary_path) as f:
             labels = f.read().splitlines()
@@ -96,16 +91,21 @@ def predict():
                 'width': float(l[3]),
                 'height': float(l[4]),
             } for l in labels]
+            logger.info(f'prediction: {prediction_id}/{photo_s3_name[1]}. prediction summary:\n\n{labels}')
+            prediction_summary = {
+                'prediction_id': prediction_id,
+                'original_img_path': photo_s3_name[1],
+                'predicted_img_path': json_data["path"],
+                'labels': labels,
+                'time': time.time()
+            }
 
-        logger.info(f'prediction: {prediction_id}/{original_img_path}. prediction summary:\n\n{labels}')
+            logger.info(prediction_summary)
 
-        prediction_summary = {
-            'prediction_id': prediction_id,
-            'original_img_path': original_img_path,
-            'predicted_img_path': predicted_img_path,
-            'labels': labels,
-            'time': time.time()
-        }
+            client = MongoClient("mongodb://mongo1:27017/")
+            db = client['mydatabase']
+            collection = db['mycollection']
+            collection.insert_one(prediction_summary)
 
         # TODO store the prediction_summary in MongoDB
         # Connect to MongoDB

@@ -70,19 +70,6 @@ services:
     env_file:
       - .env
 
-  ngrok:
-    image: wernight/ngrok
-    container_name: ngrok
-    ports:
-      - "4040:4040"
-    volumes:
-      - ./ngrok.yml:/ngrok/ngrok.yml
-    command: ["ngrok", "start", "--config=/ngrok/ngrok.yaml", "--all"]
-    depends_on:
-      - mongo_primary
-      - mongo_1
-      - mongo_2
-
 networks:
   mongoCluster:
     name: mongoCluster

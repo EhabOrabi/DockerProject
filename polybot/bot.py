@@ -1,3 +1,6 @@
+import json
+
+import requests
 import telebot
 from loguru import logger
 import os
@@ -116,24 +119,40 @@ class ObjectDetectionBot(Bot):
                         # TODO send an HTTP request to the `yolo5` service for prediction
                         # TODO send the returned results to the Telegram end-user
                         self.send_text(msg['chat']['id'], "yolo5 activated ! ")
+
+                        logger.info(f'Photo downloaded to: {img_path}')
+                        photo_s3_name = img_path.split("/")
+
                         # Get the bucket name from the environment variable
                         images_bucket = os.environ['BUCKET_NAME']
-                        new_img = Img(img_path)
-                        # self.send_text(msg['chat']['id'], "image bucket " + images_bucket)  # for debug
-                        # self.send_text(msg['chat']['id'], new_img)  # for debug
+                        client = boto3.client('s3')
+                        client.upload_file(img_path, images_bucket, photo_s3_name[1])
                         # Upload the image to S3
+                        # Send an HTTP request to the YOLO5 service for prediction
+                        yolo5_url = "http://my_yolo5_test:8081/predict"
+                        headers = {'Content-Type': 'application/json'}
+                        image_filename = img_path
+                        json_data = {'imgName': image_filename}
 
-                        boto3.client('s3').upload_file(str(new_img), images_bucket, "my_new_image")
-                        s3 = boto3.client('s3')
-                        s3.put_object(Bucket=images_bucket,
-                                      Key='encrypt-key',
-                                      Body=b'foobar',
-                                      ServerSideEncryption='aws:kms')
-                        response = s3.get_object(Bucket=images_bucket, Key='encrypt-key')
-                        self.send_text(msg['chat']['id'], response['Body'].read().decode('utf-8'))
+                        try:
+                            # Send an HTTP POST request to the YOLO5 service
+                            response = requests.post(yolo5_url, headers=headers, json=json_data)
+                            # Logging the status code for debugging
+                            logger.info(f"Response status code: {response.status_code}")
+                            # Check the response status code
+                            if response.status_code == 200:
+                                response_data = json.loads(response.text)
+                                logger.info(response_data)
+                                for key, value in response_data.items():
+                                    message = f"{key}: {value}"
+                                    self.send_text(msg['chat']['id'], message)
+                            logger.info("Prediction request sent successfully.")
+                        except Exception as e:
+                            logger.info(f"Error {e}")
+                            logger.error('Error sending prediction request:', exc_info=True)
+
                     else:
-                        self.send_text(msg['chat']['id'],
-                                       "Error invalid caption\n Avalaibe captions are :\n 1)Blur\n2)mix\n3)Salt and pepper\n 4)predict")
+                        self.send_text(msg['chat']['id'],"Error invalid caption\n Available captions are :\n 1)Blur\n2)mix\n3)Salt and pepper\n 4)predict")
                 except Exception as e:
                     logger.info(f"Error {e}")
                     self.send_text(msg['chat']['id'], f'failed - try again later')
