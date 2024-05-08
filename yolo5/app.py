@@ -123,7 +123,20 @@ def predict():
                 logger.info("Data inserted successfully.")
                 doc = collection.find_one({})
                 json_doc = json.dumps(doc, default=json_util.default)
-                return json_doc
+                class_counts = {}
+                for label in labels:
+                    class_name = label['class']
+                    if class_name in class_counts:
+                        class_counts[class_name] += 1
+                    else:
+                        class_counts[class_name] = 1
+                # Create a dictionary with class names and counts
+                class_counts_json = {class_name: count for class_name, count in class_counts.items()}
+                # Convert the dictionary to JSON
+                class_counts_json_str = json.dumps(class_counts_json)
+                # Return the JSON object
+                return class_counts_json
+
             except Exception as e:
                 logger.error(f"Error connecting to MongoDB or inserting data:\n {e}")    
 
