@@ -9,6 +9,9 @@ from telebot.types import InputFile
 from img_proc import Img
 import boto3
 
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class Bot:
     def __init__(self, token, telegram_chat_url):

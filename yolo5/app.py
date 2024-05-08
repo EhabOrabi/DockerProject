@@ -9,8 +9,16 @@ import uuid
 import yaml
 from loguru import logger
 import os
-
+import logging
 from pymongo import MongoClient
+from bson import json_util 
+from json import JSONEncoder
+
+
+
+logging.basicConfig(level=logging.INFO) 
+logger = logging.getLogger(__name__)
+
 
 # Get the bucket name from the environment variable
 images_bucket = os.environ['BUCKET_NAME']
@@ -57,7 +65,7 @@ def predict():
         save_txt=True
     )
 
-    logger.info(f'prediction: {prediction_id}/{original_img_path}. done')
+    #logger.info(f'prediction: {prediction_id}/{original_img_path}. done')
 
     # This is the path for the predicted image with labels
     # The predicted image typically includes bounding boxes drawn around the detected objects, along with class labels and possibly confidence scores.
@@ -100,25 +108,28 @@ def predict():
                 'time': time.time()
             }
 
-            logger.info(prediction_summary)
+            try:
 
-            client = MongoClient("mongodb://mongo_primary:27017/")
-            db = client['mydatabase']
-            collection = db['mycollection']
-            collection.insert_one(prediction_summary)
+                logger.info("Connecting to MongoDB...")
+                connection_string = f"mongodb://mongo_1:27017/"
+                logger.info(f"Connection string: {connection_string}")
+                client = MongoClient(connection_string)
+                logger.info("MongoClient connected successfully.")
+                db = client['mydatabase']
+                collection_name = 'prediction'
+                collection = db['prediction']
+                logger.info("Inserting data...")
+                collection.insert_one(prediction_summary)
+                logger.info("Data inserted successfully.")
+                doc = collection.find_one({})
+                json_doc = json.dumps(doc, default=json_util.default)
+                return json_doc
+            except Exception as e:
+                logger.error(f"Error connecting to MongoDB or inserting data:\n {e}")    
 
-        # TODO store the prediction_summary in MongoDB
-        # Connect to MongoDB
-        client = pymongo.MongoClient("mongodb://localhost:27017/")
-        db = client["mongo_primary"]
-        # Select or create a collection for predictions
-        collection = db["predictions"]
-        # Insert JSON data into MongoDB
-        collection.insert_one(prediction_summary)
-        return prediction_summary
     else:
         return f'prediction: {prediction_id}/{original_img_path}. prediction result not found', 404
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8081)
+    app.run(host='0.0.0.0', port=8081 , debug=True)
