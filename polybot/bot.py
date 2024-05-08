@@ -149,6 +149,22 @@ class ObjectDetectionBot(Bot):
                                 for key, value in response_data.items():
                                     message = f"{key}: {value}"
                                     self.send_text(msg['chat']['id'], message)
+                                    # parsing the data that return from the yolo5_app in order to be clean answer (dog:2 , person 3 .. etc)
+                                    #class_counts = {}
+                                    #for label in labels:
+                                      #  class_name = label['class']
+                                      #  if class_name in class_counts:
+                                      #      class_counts[class_name] += 1
+                                     #   else:
+                                     #       class_counts[class_name] = 1
+                                    # Print the name of each class along with its count
+                                    #logger.info("Class counts:")
+                                    #for class_name, count in class_counts.items():
+                                        #logger.info(f"{class_name}: {count}")
+
+
+
+
                             logger.info("Prediction request sent successfully.")
                         except Exception as e:
                             logger.info(f"Error {e}")

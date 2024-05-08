@@ -86,4 +86,3 @@ secrets:
 
 volumes:
   mongo_data:
-
