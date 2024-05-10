@@ -49,7 +49,7 @@ services:
       - mongo_3
 
   polybot:
-    image: ehab215/docker_project:polybot-${POLYBOT_VER}
+    image: ehab215/docker_project:polybot-${POLYBOT_IMG_NAME}
     ports:
       - "8443:8443"
     env_file:
