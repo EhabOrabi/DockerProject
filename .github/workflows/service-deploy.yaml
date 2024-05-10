@@ -20,7 +20,7 @@ jobs:
           cd polybot
 
           # Login to DockerHub (comment out if you don't use DockerHub):         
-          docker login -u ${{ secrets.DOCKERHUB_USERNAME}} -p ${{ secrets.DOCKER_REPO_PASSWORD }}
+          docker login -u ${{ secrets.DOCKERHUB_USERNAME}} -p ${{ secrets.DOCKERHUB_PASSWORD }}
 
           POLY_BOT_IMAGE_NAME=polybot:${{ github.run_number }}
           docker build -t $POLY_BOT_IMAGE_NAME .
@@ -36,7 +36,7 @@ jobs:
         run: |
           cd yolo5
    
-          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKER_REPO_PASSWORD }}
+          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
 
           YOLO5_IMAGE_NAME=yolo5:${{ github.run_number }}
           docker build -t $YOLO5_IMAGE_NAME .
