@@ -15,6 +15,10 @@ jobs:
       - name: Checkout the repo code
         uses: actions/checkout@v2
 
+      - name: Print Docker image name
+        run:
+          echo "Image name: $POLY_BOT_IMAGE_NAME"
+
       - name: Build and push image
         run: |
           cd polybot
