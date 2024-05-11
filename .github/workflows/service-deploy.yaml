@@ -15,10 +15,6 @@ jobs:
       - name: Checkout the repo code
         uses: actions/checkout@v2
 
-      - name: Print Docker image name
-        run:
-          echo " Image Name - $POLYBOT_IMG_NAME"
-
       - name: Build and push image
         run: |
           cd polybot
@@ -26,9 +22,9 @@ jobs:
           # Login to DockerHub (comment out if you don't use DockerHub):         
           docker login -u ${{ secrets.DOCKERHUB_USERNAME}} -p ${{ secrets.DOCKERHUB_PASSWORD }}
 
-          $POLYBOT_IMG_NAME=polybot:${{ github.run_number }}
-          docker build -t $POLYBOT_IMG_NAME .
-          docker push $POLYBOT_IMG_NAME
+          POLY_BOT_IMAGE_NAME=polybot:${{ github.run_number }}
+          docker build -t $POLY_BOT_IMAGE_NAME .
+          docker push $POLY_BOT_IMAGE_NAME
 
   Yolo5Build:
     runs-on: ubuntu-latest
