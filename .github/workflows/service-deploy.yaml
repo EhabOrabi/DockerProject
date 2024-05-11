@@ -17,7 +17,7 @@ jobs:
 
       - name: Print Docker image name
         run:
-          echo "Image name: $POLY_BOT_IMAGE_NAME"
+          echo " Image Name - $POLY_BOT_IMAGE_NAME"
 
       - name: Build and push image
         run: |
