@@ -82,7 +82,7 @@ jobs:
             echo "${{ secrets.TELEGRAM_BOT_TOKEN }}" > telegram_bot_token.secret
             
             # Get the ngrok current domain (you should assume ngrok is already running in the EC2)
-            NGROK_DOMAIN=$(curl -s localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url')
+            NGROK_DOMAIN=$(curl -s localhost:8443/api/tunnels | jq -r '.tunnels[0].public_url')
             
             # Generate .env file
             echo """
