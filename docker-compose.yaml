@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   mongo_1:
-    image: ehab215/docker_project:mongo-${MONGO_DB_VER}
+    image: ehab215/:mongo-${MONGO_DB_VER}
     ports:
        - "27017:27017"
     env_file:
@@ -23,7 +23,7 @@ services:
     command: mongod --replSet myReplicaSet --bind_ip_all
 
   mongo_3:
-    image: ehab215/docker_project:mongo-${MONGO_DB_VER}
+    image: ehab215/:mongo-${MONGO_DB_VER}
     ports:
       - "27019:27017"
     env_file:
@@ -33,7 +33,7 @@ services:
     command: mongod --replSet myReplicaSet --bind_ip_all
 
   mongo_init:
-    image: ehab215/docker_project:mongo-${MONGO_DB_VER}
+    image: ehab215/:mongo-${MONGO_DB_VER}
     volumes:
       - mongo_data:/data/db
     env_file:
@@ -49,7 +49,7 @@ services:
       - mongo_3
 
   polybot:
-    image: ehab215/docker_project:polybot-${POLYBOT_IMG_NAME}
+    image: ehab215/:polybot-${POLYBOT_IMG_NAME}
     ports:
       - "8443:8443"
     env_file:
@@ -59,7 +59,7 @@ services:
       - yolo_to_mongo_primary
 
   yolo5_app:
-    image: ehab215/docker_project:yolo5-${YOLO5_IMG_NAME}
+    image: ehab215/:yolo5-${YOLO5_IMG_NAME}
     ports:
       - "8081:8081"
     volumes:
