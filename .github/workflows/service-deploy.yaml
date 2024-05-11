@@ -27,7 +27,11 @@ jobs:
           
           echo "POLY_BOT_IMAGE_NAME $POLY_BOT_IMAGE_NAME"
           
-          docker push ehab215/$POLY_BOT_IMAGE_NAME
+          docker tag $POLY_BOT_IMAGE_NAME ehab215/$POLY_BOT_IMAGE_NAME        
+          docker push ehab215/$POLY_BOT_IMAGE_NAME   
+         
+          
+          
           
           #docker push $POLY_BOT_IMAGE_NAME
 
