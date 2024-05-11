@@ -13,6 +13,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class Bot:
     def __init__(self, token, telegram_chat_url):
         # create a new instance of the TeleBot class.
@@ -121,7 +122,7 @@ class ObjectDetectionBot(Bot):
                         # TODO upload the photo to S3
                         # TODO send an HTTP request to the `yolo5` service for prediction
                         # TODO send the returned results to the Telegram end-user
-                        self.send_text(msg['chat']['id'], "yolo5 activated ! ")
+                        self.send_text(msg['chat']['id'], "Processing image detection by yolo5")
 
                         logger.info(f'Photo downloaded to: {img_path}')
                         photo_s3_name = img_path.split("/")
@@ -150,9 +151,12 @@ class ObjectDetectionBot(Bot):
                                     message = f"{key}: {value}"
                                     self.send_text(msg['chat']['id'], message)
                             logger.info("Prediction request sent successfully.")
+                        except requests.Timeout:
+                            self.send_text(msg['chat']['id'], "Request timed out. Please try again later.")
                         except Exception as e:
                             logger.info(f"Error {e}")
                             logger.error('Error sending prediction request:', exc_info=True)
+                            self.send_text(msg['chat']['id'], "Error sending prediction request")
                     else:
                         self.send_text(msg['chat']['id'],"Error invalid caption\n Available captions are :\n 1)Blur\n2)mix\n3)Salt and pepper\n 4)predict")
                 except Exception as e:
