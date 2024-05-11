@@ -27,6 +27,7 @@ jobs:
           echo "POLY_BOT_IMAGE_NAME : #$POLY_BOT_IMAGE_NAME#"
           DEBUG = ${{ secrets.DOCKERHUB_USERNAME}}
           echo "DEBUG username : $DEBUG"
+          
           #docker push secrets.DOCKERHUB_USERNAME/polybot/$POLY_BOT_IMAGE_NAME
           #docker push $POLY_BOT_IMAGE_NAME
 
