@@ -95,6 +95,7 @@ jobs:
             TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
             """ > .env
             
+            
             # Take the service down
             docker compose down 
             
