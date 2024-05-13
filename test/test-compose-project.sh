@@ -23,7 +23,7 @@ MONGO_CONTAINER_IDS=$(docker ps --filter "status=running" --filter "label=com.do
 
 docker ps --filter "status=running" --filter "label=com.docker.compose.project"
 
-if ! [ "$(echo "$MONGO_CONTAINER_IDS" | wc -l)" -eq "3" ]; then
+if  [ "$(echo "$MONGO_CONTAINER_IDS" | wc -l)" -eq "3" ]; then
   echo "Three running mongo containers were not found"
   exit 1
 fi
