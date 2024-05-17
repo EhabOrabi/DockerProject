@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   mongo_1:
-    image: ehab215/mongo:${MONGO_DB_VER}
+    image: mongo:${MONGO_DB_VER}
     ports:
        - "27017:27017"
     env_file:
@@ -13,7 +13,7 @@ services:
     command: mongod --replSet myReplicaSet --bind_ip_all
 
   mongo_2:
-    image: ehab215/mongo:${MONGO_DB_VER}
+    image: mongo:${MONGO_DB_VER}
     ports:
       - "27018:27017"
     env_file:
@@ -23,7 +23,7 @@ services:
     command: mongod --replSet myReplicaSet --bind_ip_all
 
   mongo_3:
-    image: ehab215/mongo:${MONGO_DB_VER}
+    image: mongo:${MONGO_DB_VER}
     ports:
       - "27019:27017"
     env_file:
